@@ -2,13 +2,17 @@ language: node_js
 node_js:
   - 0.10
 before_install:
-  - time sudo pip install --use-mirrors -r ./test-infra/requirements.txt
+  - time sudo pip install --use-mirrors -r test-infra/requirements.txt
+  - if [ "$TWBS_TEST" = validate-html ]; then rvm use $(cat test-infra/ruby_version.txt) --fuzzy; fi
+  - cp test-infra/gemrc ~/.gemrc
+  - echo "ruby=$(cat test-infra/ruby_version.txt)" "jekyll=$(cat test-infra/jekyll_version.txt)" > pseudo_Gemfile.lock
 install:
-  - if [ "$TWBS_TEST" = validate-html ]; then time gem install jekyll; fi
   - time npm install -g grunt-cli
   - time ./test-infra/node_modules_cache.py download package.json ./node_modules || time npm install
+  - if [ "$TWBS_TEST" = validate-html ]; then time ./test-infra/node_modules_cache.py download pseudo_Gemfile.lock $(rvm gemdir) || gem install jekyll; fi
 after_script:
   - if [ "$TWBS_TEST" = core ]; then time ./test-infra/node_modules_cache.py upload package.json ./node_modules; fi
+  - if [ "$TWBS_TEST" = validate-html ]; then time ./test-infra/node_modules_cache.py upload pseudo_Gemfile.lock $(rvm gemdir); fi
 env:
   global:
     - SAUCE_USERNAME: bootstrap
