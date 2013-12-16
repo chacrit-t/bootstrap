@@ -8,11 +8,11 @@ before_install:
   - echo "ruby=$(cat test-infra/ruby_version.txt)" "jekyll=$(cat test-infra/jekyll_version.txt)" > pseudo_Gemfile.lock
 install:
   - time npm install -g grunt-cli
-  - time ./test-infra/node_modules_cache.py download package.json ./node_modules || time npm install
-  - if [ "$TWBS_TEST" = validate-html ]; then time ./test-infra/node_modules_cache.py download pseudo_Gemfile.lock $(rvm gemdir) || gem install jekyll; fi
+  - time ./test-infra/s3_cache.py download package.json ./node_modules || time npm install
+  - if [ "$TWBS_TEST" = validate-html ]; then time ./test-infra/s3_cache.py download pseudo_Gemfile.lock $(rvm gemdir) || gem install jekyll; fi
 after_script:
-  - if [ "$TWBS_TEST" = core ]; then time ./test-infra/node_modules_cache.py upload package.json ./node_modules; fi
-  - if [ "$TWBS_TEST" = validate-html ]; then time ./test-infra/node_modules_cache.py upload pseudo_Gemfile.lock $(rvm gemdir); fi
+  - if [ "$TWBS_TEST" = core ]; then time ./test-infra/s3_cache.py upload package.json ./node_modules; fi
+  - if [ "$TWBS_TEST" = validate-html ]; then time ./test-infra/s3_cache.py upload pseudo_Gemfile.lock $(rvm gemdir); fi
 env:
   global:
     - SAUCE_USERNAME: bootstrap
